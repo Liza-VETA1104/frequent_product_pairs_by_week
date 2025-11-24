@@ -1,5 +1,5 @@
 WITH weekly_pairs AS (
-  -- Шаг 1: самоджойн по чеку и неделе, чтобы получить все пары товаров
+  -- самоджойн по чеку и неделе, чтобы получить все пары товаров
   SELECT
     EXTRACT(ISOWEEK FROM t1.purchase_date) AS week_num,
     EXTRACT(YEAR FROM t1.purchase_date) AS year_num,  -- важно: неделя 1 в 2024 ≠ неделе 1 в 2025
@@ -9,8 +9,7 @@ WITH weekly_pairs AS (
   FROM purchases t1
   JOIN purchases t2
     ON t1.check_id = t2.check_id
-    AND t1.purchase_date = t2.purchase_date  -- на случай, если check_id не уникален между датами
-    AND t1.product < t2.product  -- гарантирует уникальность пары: (A,B), но не (B,A) и не (A,A)
+    AND t1.product < t2.product  -- гарантирует уникальность пары: (A,B), исключает (B,A) и (A,A)
   GROUP BY
     year_num,
     week_num,
@@ -18,7 +17,7 @@ WITH weekly_pairs AS (
     product_b
 ),
 ranked_pairs AS (
-  -- Шаг 2: ранжируем пары по частоте внутри каждой недели
+  -- ранжируем пары по частоте внутри каждой недели
   SELECT
     year_num,
     week_num,
@@ -31,7 +30,7 @@ ranked_pairs AS (
     ) AS rn
   FROM weekly_pairs
 )
--- Шаг 3: берём только самую частую пару за неделю
+--: берём только самую частую пару за неделю
 SELECT
   year_num,
   week_num,
